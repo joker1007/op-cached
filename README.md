@@ -8,6 +8,10 @@ Requires `op` (1Password CLI) and `gpg` to be installed. Nothing is persisted to
 ## Installation
 
 ```sh
+cargo install op-cached
+
+# or 
+
 cargo install --git https://github.com/joker1007/op-cached
 ```
 
