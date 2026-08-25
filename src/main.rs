@@ -19,6 +19,10 @@ struct Cli {
     #[arg(long, global = true)]
     socket: Option<PathBuf>,
 
+    /// Do not auto-start the daemon when it is not running (env: OP_CACHED_NO_SPAWN)
+    #[arg(long, global = true)]
+    no_spawn: bool,
+
     #[command(subcommand)]
     cmd: Cmd,
 }
@@ -64,10 +68,13 @@ async fn main() {
 async fn real_main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     let socket = config::resolve_socket(cli.socket);
+    let auto_spawn = config::resolve_auto_spawn(cli.no_spawn);
     match cli.cmd {
         Cmd::Daemon { ttl } => daemon::run(socket, config::resolve_ttl(ttl)?).await,
-        Cmd::Read { url } => client::cmd_read(&socket, &url).await,
-        Cmd::Inject { input, output } => client::cmd_inject(&socket, &input, output).await,
+        Cmd::Read { url } => client::cmd_read(&socket, &url, auto_spawn).await,
+        Cmd::Inject { input, output } => {
+            client::cmd_inject(&socket, &input, output, auto_spawn).await
+        }
         Cmd::Clear => client::cmd_clear(&socket).await,
         Cmd::Status => client::cmd_status(&socket).await,
         Cmd::Stop => client::cmd_stop(&socket).await,

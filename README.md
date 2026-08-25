@@ -35,29 +35,22 @@ op-cached daemon --ttl 12h                      # run the daemon explicitly in t
 |---|---|---|---|
 | TTL | `daemon --ttl 7d` | `OP_CACHED_TTL` | `7d` |
 | Socket | `--socket PATH` | `OP_CACHED_SOCKET` | `$XDG_RUNTIME_DIR/op-cached.sock` (falls back to `/tmp/op-cached-<uid>.sock`) |
+| Auto-spawn | `--no-spawn` | `OP_CACHED_NO_SPAWN=1` | enabled |
 
 TTL accepts humantime formats such as `7d`, `12h`, `30m`. Expired entries are dropped on lookup and
 by a sweep that runs every 60 seconds.
 
 ## Running as a systemd user service
 
-```ini
-# ~/.config/systemd/user/op-cached.service
-[Unit]
-Description=op-cached daemon
-
-[Service]
-ExecStart=%h/.cargo/bin/op-cached daemon
-Environment=OP_CACHED_TTL=7d
-Restart=on-failure
-
-[Install]
-WantedBy=default.target
-```
+A ready-made unit file is provided in [`contrib/op-cached.service`](contrib/op-cached.service):
 
 ```sh
+cp contrib/op-cached.service ~/.config/systemd/user/
 systemctl --user enable --now op-cached
 ```
+
+When the daemon is managed by systemd, set `OP_CACHED_NO_SPAWN=1` in your shell so clients
+never auto-spawn a competing daemon.
 
 ## License
 

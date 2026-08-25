@@ -95,8 +95,8 @@ fn spawn_daemon(socket: &Path) -> Result<()> {
 
 // ---- subcommands ----
 
-pub async fn cmd_read(socket: &Path, url: &str) -> Result<()> {
-    let mut c = Client::connect(socket, true).await?;
+pub async fn cmd_read(socket: &Path, url: &str, auto_spawn: bool) -> Result<()> {
+    let mut c = Client::connect(socket, auto_spawn).await?;
     let v = c.read(url).await?;
     let mut out = std::io::stdout().lock();
     out.write_all(v.as_bytes())?;
@@ -104,11 +104,16 @@ pub async fn cmd_read(socket: &Path, url: &str) -> Result<()> {
     Ok(())
 }
 
-pub async fn cmd_inject(socket: &Path, input: &Path, output: Option<PathBuf>) -> Result<()> {
+pub async fn cmd_inject(
+    socket: &Path,
+    input: &Path,
+    output: Option<PathBuf>,
+    auto_spawn: bool,
+) -> Result<()> {
     // Send an absolute path: the daemon may have a different cwd.
     let abs = std::path::absolute(input)
         .with_context(|| format!("cannot resolve {}", input.display()))?;
-    let mut c = Client::connect(socket, true).await?;
+    let mut c = Client::connect(socket, auto_spawn).await?;
     let rendered = match c
         .call(&Request::Inject {
             path: abs.to_string_lossy().into_owned(),

@@ -39,3 +39,17 @@ pub fn resolve_ttl(arg: Option<Duration>) -> Result<Duration> {
 pub fn parse_duration(s: &str) -> std::result::Result<Duration, String> {
     humantime::parse_duration(s).map_err(|e| e.to_string())
 }
+
+pub const ENV_NO_SPAWN: &str = "OP_CACHED_NO_SPAWN";
+
+/// Auto-spawn is enabled unless `--no-spawn` is given or OP_CACHED_NO_SPAWN
+/// is set to something other than "" / "0" / "false".
+pub fn resolve_auto_spawn(no_spawn_flag: bool) -> bool {
+    if no_spawn_flag {
+        return false;
+    }
+    match std::env::var(ENV_NO_SPAWN) {
+        Ok(v) => matches!(v.trim(), "" | "0" | "false"),
+        Err(_) => true,
+    }
+}
